@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int         @id @default(autoincrement())
+  email       String      @unique
+  password    String
+  totalAmount TotalAmount? // One-to-one relationship with TotalAmount
+}
+
+model TotalAmount {
+  id         Int          @id @default(autoincrement())
+  total      Float
+  user       User         @relation(fields: [userId], references: [id])
+  userId     Int          @unique // Foreign key with @unique for one-to-one relation
+  debited    Debit[]      // One-to-many relation to Debited table
+  credited   Credit[]     // One-to-many relation to Credited table
+  debt       Debt[]       // One-to-many relation to Debt table
+  receivable Receivable[] // One-to-many relation to Receivable table
+}
+
+model Debit {
+  id          Int          @id @default(autoincrement())
+  money       Float
+  description String
+  category    String       // New field for pie chart categorization
+  deleted     Boolean      @default(false)
+  date        DateTime
+  totalAmount TotalAmount  @relation(fields: [totalAmountId], references: [id])
+  totalAmountId Int        // Foreign key to TotalAmount
+}
+
+model Credit {
+  id          Int          @id @default(autoincrement())
+  money       Float
+  description String
+  category    String       // New field for pie chart categorization
+  deleted     Boolean      @default(false)
+  date        DateTime
+  totalAmount TotalAmount  @relation(fields: [totalAmountId], references: [id])
+  totalAmountId Int        // Foreign key to TotalAmount
+}
+
+model Debt {
+  id          Int          @id @default(autoincrement())
+  money       Float
+  description String
+  status      Boolean      @default(false)
+  deleted     Boolean      @default(false)
+  date        DateTime
+  totalAmount TotalAmount  @relation(fields: [totalAmountId], references: [id])
+  totalAmountId Int        // Foreign key to TotalAmount
+}
+
+model Receivable {
+  id          Int          @id @default(autoincrement())
+  money       Float
+  description String
+  status      Boolean      @default(false)
+  deleted     Boolean      @default(false)
+  date        DateTime
+  totalAmount TotalAmount  @relation(fields: [totalAmountId], references: [id])
+  totalAmountId Int        // Foreign key to TotalAmount
+}
+
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique // E.g., "Food", "Transport", "Salary","Online shopping" etc.
+  color       String  // Color code for pie chart visualization
+}
